@@ -1,0 +1,57 @@
+trigger:
+- main
+
+variables:
+  azureSubscription: 'flask-aks-sc'
+  acrName: 'flaskelli1'
+  acrLoginServer: 'flaskelli1.azurecr.io'
+  imageRepository: 'flask-app'
+  tag: '$(Build.BuildId)'
+  resourceGroup: 'flask-aks-rg-sea'
+  aksCluster: 'flask-aks-cluster'
+  namespace: 'flask-demo'
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+stages:
+- stage: Build
+  jobs:
+  - job: BuildAndPush
+    steps:
+    - task: AzureCLI@2
+      inputs:
+        azureSubscription: $(azureSubscription)
+        scriptType: bash
+        scriptLocation: inlineScript
+        inlineScript: |
+          az acr login --name $(acrName)
+          docker buildx build \
+            --platform linux/amd64 \
+            -t $(acrLoginServer)/$(imageRepository):$(tag) \
+            --push .
+
+- stage: Deploy
+  dependsOn: Build
+  jobs:
+  - job: DeployToAKS
+    steps:
+    - task: AzureCLI@2
+      inputs:
+        azureSubscription: $(azureSubscription)
+        scriptType: bash
+        scriptLocation: inlineScript
+        inlineScript: |
+          az aks get-credentials \
+            --resource-group $(resourceGroup) \
+            --name $(aksCluster) \
+            --overwrite-existing
+
+          kubectl create namespace $(namespace) --dry-run=client -o yaml | kubectl apply -f -
+
+          sed -i "s|IMAGE_PLACEHOLDER|$(acrLoginServer)/$(imageRepository):$(tag)|g" k8s/deployment.yaml
+
+          kubectl apply -f k8s/deployment.yaml
+          kubectl apply -f k8s/service.yaml
+
+          kubectl rollout status deployment/flask-app -n $(namespace)
