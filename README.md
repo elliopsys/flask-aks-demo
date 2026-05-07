@@ -303,19 +303,6 @@ Potential future enhancements include:
 
 ---
 
-# Screenshots
-
-Recommended screenshots to include:
-
-* AKS cluster overview
-* Azure DevOps successful pipeline
-* Jenkins successful pipeline
-* Running Flask application
-* kubectl get pods
-* GitHub repository
-
----
-
 # Outcome
 
 This project successfully demonstrated:
