@@ -25,3 +25,7 @@ docker buildx build \
   --platform linux/amd64 \
   -t <acr-login-server>/flask-app:v1 \
   --push .
+
+## Completed
+- Manual Flask deployment to AKS
+- Azure DevOps CI/CD pipeline
