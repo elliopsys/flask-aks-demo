@@ -15,6 +15,6 @@ spec:
     spec:
       containers:
       - name: flask-app
-        image: IMAGE_PLACEHOLDER
+        image: flaskelli1.azurecr.io/flask-app:v1
         ports:
         - containerPort: 5000
