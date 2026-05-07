@@ -16,27 +16,32 @@ pool:
 
 stages:
 - stage: Build
+  displayName: Build and Push Image
   jobs:
   - job: BuildAndPush
     steps:
     - task: AzureCLI@2
+      displayName: Build and push Docker image
       inputs:
         azureSubscription: $(azureSubscription)
         scriptType: bash
         scriptLocation: inlineScript
         inlineScript: |
           az acr login --name $(acrName)
+
           docker buildx build \
             --platform linux/amd64 \
             -t $(acrLoginServer)/$(imageRepository):$(tag) \
             --push .
 
 - stage: Deploy
+  displayName: Deploy to AKS
   dependsOn: Build
   jobs:
   - job: DeployToAKS
     steps:
     - task: AzureCLI@2
+      displayName: Deploy Kubernetes manifests
       inputs:
         azureSubscription: $(azureSubscription)
         scriptType: bash
